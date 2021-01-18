@@ -23,7 +23,7 @@ jobs:
           keys: 
             - yarn-packages-{{ checksum "yarn.lock" }}-{{ .Environment.CACHE_VERSION }}
       - run:
-          name: Launch test 
+          name: Launch yarn test 
           command: yarn test
   prod-build: 
     docker:
@@ -37,7 +37,7 @@ jobs:
           name: Build for production 
           command : yarn run build
       - run:
-          name: Copy build to workspace
+          name: Copy dist to workspace
           command: |
             cp dist/ /tmp/dist -r
       - store_artifacts:
@@ -54,7 +54,7 @@ jobs:
       - attach_workspace:
           at: /tmp
       - run:
-          name: Deploy app
+          name: Npm install & deploy app on netlify
           command: |
             sudo npm install -g --silent netlify-cli
             netlify deploy --prod --auth $NETLIFY_AUTH_TOKEN --dir=/tmp/dist --site $NETLIFY_SITE_ID
@@ -66,11 +66,11 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name:  dockerize the app 
+          name:  Dockerize
           command: |
             docker build --cache-from=app -t app .
       - run: 
-          name: Publish app to docker hub
+          name: Login to dockerhub and push the app
           command: |
             docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
             docker tag app $DOCKER_HUB_USERNAME/tp-devops-front:$CIRCLE_BUILD_NUM
